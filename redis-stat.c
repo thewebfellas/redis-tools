@@ -52,11 +52,12 @@ static long long microseconds(void) {
     return mst;
 }
 
-void usage(char *wrong) {
-    if (wrong)
-        printf("Wrong option '%s' or option argument missing\n\n",wrong);
+void usage(char *format, char *args) {
+    if (format)
+        printf(format, args);
+        
     printf(
-"Usage: redis-stat <type> ... options ...\n\n"
+"Usage: redis-stat [-h host] [-p port] [-d milliseconds] [-s keys] [-l] [type]\n\n"
 "Statistic types:\n"
 " overview (default)   Print general information about a Redis instance.\n"
 " vmstat               Print information about Redis VM activity.\n"
@@ -65,12 +66,13 @@ void usage(char *wrong) {
 " latency              Measure Redis server latency.\n"
 "\n"
 "Options:\n"
-" host <hostname>      Server hostname (default 127.0.0.1)\n"
-" port <hostname>      Server port (default 6379)\n"
-" delay <milliseconds> Delay between requests (default: 1000 ms, 1 second).\n"
-" samplesize <keys>    Number of keys to sample for 'vmpage' stat.\n"
-" logscale             User power-of-two logarithmic scale in graphs.\n"
+" -h <hostname>        Server hostname (default 127.0.0.1).\n"
+" -p <port>            Server port (default 6379).\n"
+" -d <milliseconds>    Delay interval between requests (default: 1000 ms).\n"
+" -s <keys>            Number of keys to sample for 'vmpage' stat.\n"
+" -l                   User power-of-two logarithmic scale in graphs.\n\n"
 );
+        
     exit(1);
 }
 
@@ -80,7 +82,7 @@ static int parseOptions(int argc, char **argv) {
     for (i = 1; i < argc; i++) {
         int lastarg = i==argc-1;
         
-        if (!strcmp(argv[i],"host") && !lastarg) {
+        if ((!strcmp(argv[i],"host") || !strcmp(argv[i],"-h")) && !lastarg) {
             char *ip = zmalloc(32);
             if (anetResolve(NULL,argv[i+1],ip) == ANET_ERR) {
                 printf("Can't resolve %s\n", argv[i]);
@@ -88,7 +90,9 @@ static int parseOptions(int argc, char **argv) {
             }
             config.hostip = ip;
             i++;
-        } else if (!strcmp(argv[i],"port") && !lastarg) {
+        } else if (!strcmp(argv[i],"-h") && lastarg) {
+            usage(NULL, NULL);
+        } else if ((!strcmp(argv[i],"port") || !strcmp(argv[i],"-p")) && !lastarg) {
             config.hostport = atoi(argv[i+1]);
             i++;
         } else if (!strcmp(argv[i],"delay") && !lastarg) {
@@ -109,10 +113,10 @@ static int parseOptions(int argc, char **argv) {
             config.stat = STAT_LATENCY;
         } else if (!strcmp(argv[i],"logscale")) {
             config.logscale = 1;
-        } else if (!strcmp(argv[i],"help")) {
-            usage(NULL);
+        } else if (!strcmp(argv[i],"help") || (!strcmp(argv[i],"-h") && lastarg)) {
+            usage(NULL, NULL);
         } else {
-            usage(argv[i]);
+            usage("Wrong option '%s' or option argument missing\n",argv[i]);
         }
     }
     return i;
@@ -577,7 +581,7 @@ int main(int argc, char **argv) {
 
     r = redisConnect(&fd,config.hostip,config.hostport);
     if (r != NULL) {
-        printf("Error connecting to Redis server: %s\n", r->reply);
+        usage("Error connecting to Redis server: %s\n",r->reply);
         freeReplyObject(r);
         exit(1);
     }
