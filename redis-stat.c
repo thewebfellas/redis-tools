@@ -40,6 +40,7 @@ static struct config {
     int stat; /* The kind of output to produce: STAT_* */
     int samplesize;
     int logscale;
+    char *auth;
 } config;
 
 static long long microseconds(void) {
@@ -94,6 +95,9 @@ static int parseOptions(int argc, char **argv) {
             usage(NULL, NULL);
         } else if ((!strcmp(argv[i],"port") || !strcmp(argv[i],"-p")) && !lastarg) {
             config.hostport = atoi(argv[i+1]);
+            i++;
+        } else if (!strcmp(argv[i],"auth") && !lastarg) {
+            config.auth = strdup(argv[i+1]);
             i++;
         } else if (!strcmp(argv[i],"delay") && !lastarg) {
             config.delay = atoi(argv[i+1]);
@@ -576,6 +580,7 @@ int main(int argc, char **argv) {
     config.delay = 1000;
     config.samplesize = 10000;
     config.logscale = 0;
+    config.auth = NULL;
 
     parseOptions(argc,argv);
 
@@ -584,6 +589,19 @@ int main(int argc, char **argv) {
         usage("Error connecting to Redis server: %s\n",r->reply);
         freeReplyObject(r);
         exit(1);
+    }
+
+    if (config.auth != NULL) {
+      r = redisCommand(fd, "AUTH %s", config.auth);
+      if (r == NULL) {
+        printf("No reply to AUTH command, aborting.\n");
+        exit(1);
+      } else if (r->type == REDIS_REPLY_ERROR) {
+        printf("AUTH failed: %s\n", r->reply);
+        freeReplyObject(r);
+        exit(1);
+      }
+      printf("AUTH succeeded.\n");
     }
 
     switch(config.stat) {
