@@ -71,6 +71,7 @@ void usage(char *format, char *args) {
 " -p <port>            Server port (default 6379).\n"
 " -d <milliseconds>    Delay interval between requests (default: 1000 ms).\n"
 " -s <keys>            Number of keys to sample for 'vmpage' stat.\n"
+" -a <password>        Server password (default none)\n"
 " -l                   User power-of-two logarithmic scale in graphs.\n\n"
 );
         
@@ -96,7 +97,7 @@ static int parseOptions(int argc, char **argv) {
         } else if ((!strcmp(argv[i],"port") || !strcmp(argv[i],"-p")) && !lastarg) {
             config.hostport = atoi(argv[i+1]);
             i++;
-        } else if (!strcmp(argv[i],"auth") && !lastarg) {
+        } else if ((!strcmp(argv[i],"auth") || !strcmp(argv[i],"-a")) && !lastarg) {
             config.auth = strdup(argv[i+1]);
             i++;
         } else if (!strcmp(argv[i],"delay") && !lastarg) {
