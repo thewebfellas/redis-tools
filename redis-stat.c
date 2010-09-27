@@ -58,21 +58,29 @@ void usage(char *format, char *args) {
         printf(format, args);
         
     printf(
-"Usage: redis-stat [-h host] [-p port] [-d milliseconds] [-s keys] [-l] [type]\n\n"
+"Usage (new style): redis-stat [-h host] [-p port] [-a password] [-d milliseconds] [-s keys] [-l] [type]\n\n"
+"Usage (old style): redis-stat <type> ... options ...\n\n"
+"You can use either style of options or a combination of both.\n\n"
 "Statistic types:\n"
 " overview (default)   Print general information about a Redis instance.\n"
 " vmstat               Print information about Redis VM activity.\n"
 " vmpage               Try to guess the best vm-page-size for your dataset.\n"
 " ondisk-size          Stats and graphs about values len once stored on disk.\n"
-" latency              Measure Redis server latency.\n"
-"\n"
-"Options:\n"
+" latency              Measure Redis server latency.\n\n"
+"New Style Options:\n"
 " -h <hostname>        Server hostname (default 127.0.0.1).\n"
 " -p <port>            Server port (default 6379).\n"
+" -a <password>        Server password (default none).\n"
 " -d <milliseconds>    Delay interval between requests (default: 1000 ms).\n"
 " -s <keys>            Number of keys to sample for 'vmpage' stat.\n"
-" -a <password>        Server password (default none)\n"
 " -l                   User power-of-two logarithmic scale in graphs.\n\n"
+"Old Style Options:\n"
+" host <hostname>      Server hostname (default 127.0.0.1)\n"
+" port <hostname>      Server port (default 6379)\n"
+" auth <password>      Server password (default none)\n"
+" delay <milliseconds> Delay between requests (default: 1000 ms, 1 second).\n"
+" samplesize <keys>    Number of keys to sample for 'vmpage' stat.\n"
+" logscale             User power-of-two logarithmic scale in graphs.\n"
 );
         
     exit(1);
